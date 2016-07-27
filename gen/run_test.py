@@ -42,7 +42,7 @@ stored_working_directory = None   # Initial Current Working Directory
 parser = OptionParser()
 
 parser.add_option(
-    "-f", "--file", dest="pro", metavar="../src/test/test.pro",
+    "-f", "--file", dest="project", metavar="../src/test/test.pro",
     help="path to target QT project file"
 )
 

@@ -18,13 +18,12 @@ class Unbuffered(object):  # make sys.stdout and sys.stderr unbuffered
 sys.stdout = Unbuffered(sys.stdout)
 sys.stderr = Unbuffered(sys.stderr)
 
-
 def udp_send(host, port, timeout, buff, verbose):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     dump = "".join(["%02X" % i for i in
                        struct.unpack('>%dB'%(len(buff)), buff)])
     data = list()
-    dump bytes_to vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv_send = len(dump)
+    dump_bytes_to_send = len(dump)
 
     total_bytes = 0
     send_start_time = time.clock()
