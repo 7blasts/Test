@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os, sys, socket, time, optparse, json
+import os, sys, socket, time, optparse, json, struct
 
 
 class Unbuffered(object):  # make sys.stdout and sys.stderr unbuffered
@@ -18,20 +18,34 @@ class Unbuffered(object):  # make sys.stdout and sys.stderr unbuffered
 sys.stdout = Unbuffered(sys.stdout)
 sys.stderr = Unbuffered(sys.stderr)
 
-def udp_send(host, port, timeout, buff, verbose):
+
+def udp_send(host, port, timeout, fb, verbose):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    dump = "".join(["%02X" % i for i in
-                       struct.unpack('>%dB'%(len(buff)), buff)])
+    dump = "".join(["%02X" % i for i
+                    in struct.unpack('>%dB' % (len(fb)), fb)])
     data = list()
     dump_bytes_to_send = len(dump)
+    sz = 64  # chunk size
+    sb = 0   # chunk start byte
+    while sb < dump_bytes_to_send:
+        st = dump_bytes_to_send - sb
+        st = (st, sz)[st > sz]
+        data.append(dump[sb:sb+st])
+        sb = sb + st
+
+    for n, i in enumerate(data):
+        print "%010X: %s %s %s %s  %s %s %s %s" %\
+              (n*sz/2,
+               i[  : 8], i[ 8:16], i[16:24], i[24:32],
+               i[32:40], i[40:48], i[48:56], i[56:64])
 
     total_bytes = 0
     send_start_time = time.clock()
     minimal_system_timeout = 0.009  # tested only on win32 XP SP2 i386
     timeout_sum = 0.0
     no_sleep_sends = 0
-    for i in xrange(4096):
-        buff = "%X:%s" % (i, str(time.clock()))
+    for n, i in enumerate(data):
+        buff = "%d %s" % (n, i)
         total_bytes += len(buff)+1
         sock.sendto(buff, (host, port))
         timeout_sum += timeout
@@ -52,9 +66,9 @@ def udp_send(host, port, timeout, buff, verbose):
 
     print "File send time:", total_send_time, "seconds"
     if total_send_time > 0:
-        print "Send", total_bytes, "bytes"
+        print "Send", total_bytes, "bytes in", len(data), "datagrams"
         print float(total_bytes)/(128*1024*total_send_time), "Mbits per second"
-        print float(4096)/total_send_time, "Datagrams per second"
+        print float(len(data))/total_send_time, "Datagrams per second"
 
 
 def main():

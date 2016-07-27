@@ -32,3 +32,4 @@
 /tmp/*
 /gen/.idea
 /src/build*
+*.pro.user
