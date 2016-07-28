@@ -28,8 +28,8 @@ int main(int argc, char* argv[])
     QTextStream qout(stdout);
     QUdpSocket *udpSocket = new QUdpSocket(0);
     udpSocket->bind(45455, QUdpSocket::ShareAddress);
-    udpSocket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1048576);
-    udpSocket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    //udpSocket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1048576);
+    //udpSocket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     while(1)
     {
         while (udpSocket->waitForReadyRead(1))
@@ -45,7 +45,9 @@ int main(int argc, char* argv[])
                 }
                 datagram.resize(udpSocket->pendingDatagramSize());
                 udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
-                qout << "<" << sender.toString()<< ":" << senderPort << ">" << datagram.size() << "b" << endl;
+                qout << "<" << sender.toString()<< ":" << senderPort << ">"
+                     << datagram.size() << "b "
+                     << datagram.data() << endl;
             }
             break;
         }
