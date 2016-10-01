@@ -11,3 +11,5 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp
+
+include (../gx_src_json/gx_src_json.pri)

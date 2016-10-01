@@ -204,23 +204,22 @@ def main():
 
     if options.verbose:
         total_read_time = time.clock() - read_start_time
-        sys.stdout.write('Read file at path \"%s\"\n' % path)
-        sys.stdout.write('Send UDP %s : %d, timeout %s seconds\n'
+        sys.stdout.write("Read file at path \"%s\"\n" % path)
+        sys.stdout.write("Send UDP %s : %d, timeout %s seconds\n"
                          % (host, port, timeout))
-        sys.stdout.write('Send datagram size %d\n' % options.datagram_size)
+        sys.stdout.write("Send datagram size %d\n" % options.datagram_size)
         sys.stdout.write("File read time %f seconds\n" % total_read_time)
-    buff = encode_hex_dump(buff,
-                           verbose=options.verbose)
-    udp_send(host, port, timeout,
-             buff, options.datagram_size,
+
+    buff = encode_hex_dump(buff, verbose=options.verbose)
+    udp_send(host, port, timeout, buff, options.datagram_size,
              verbose=options.verbose)
 
 
 def self_test_case():
     sys.argv += ["-f", "C:/windows/system32/notepad.exe"]
     sys.argv += ["-p", "45455"]       # -p45455
-    sys.argv += ["-t", "10"]        # -t1.33
-    sys.argv += ["-s1024", ]          # default is 512
+    sys.argv += ["-t", "15"]        # -t1.33
+    sys.argv += ["-s2048", ]          # default is 512
     # sys.argv += ["-c", "bytearray"]   # default is -c hex_dump
     sys.argv += ["-v", "1"]         # [0|1|2] default is 1
     main()
