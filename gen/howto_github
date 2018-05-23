@@ -1,1 +1,30 @@
-print "Hello Git"
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Инсталлируем модуль github: > pip install githubpy
+# Фаза первая. Пишем настолько примитивно, насколько это вообще возможно.
+
+from __future__ import print_function
+from json import loads, dumps
+from pprint import pprint
+from github import*
+
+# Читаем файл с паролями и настройками спрятанный на локальной машине
+# Файл JSON примерно следующего содержания
+sample_json = \
+'''
+{"password"  : "user_password"
+,"user"      : "user_name"
+}
+'''
+gitpwd_json = file("C:/web/gitpwd.json","r").read()
+gitpwd = loads(gitpwd_json)
+username = gitpwd["user"]
+password = gitpwd["password"]
+
+print("Hello Git")
+pprint(gitpwd)
+gh=GitHub(username, password)
+pprint(gh)
+
+pprint(gh.users(username).get())
