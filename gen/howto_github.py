@@ -36,17 +36,20 @@ for repo in user.get_repos():
     print(repo.name)
     if repo.name == "exp57":
         exp57 = repo
+        break
 
-    ##repo.edit(has_wiki=False)
-
-if None == exp57:
+if None is exp57:
+    print("Repository exp57 a not found for user '%s'" % username)
     sys.exit()
 
-print(help(exp57.get_dir_contents))
+# print(help(exp57.get_dir_contents))
 for content_file in exp57.get_dir_contents(""):
-    print (content_file.raw_data)
-    sys.exit()
+    print("%-12s"%content_file.raw_data['name'], content_file.raw_data['url'])
+    print(len(content_file.raw_data))
+    print(content_file.type)
 
+print(type(content_file))
+print(help(content_file))
 
 sys.exit()
 print(help(gh))
