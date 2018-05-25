@@ -11,7 +11,7 @@ from github import*
 
 # Читаем файл с паролями и настройками спрятанный на локальной машине
 try:
-    git_conf_file = open("E:/web/gitpwd.json", "r").read()
+    git_conf_file = open("C:/web/gitpwd.json", "r").read()
 except IOError:
     git_conf_file = '''
     {"password"  : null
@@ -48,9 +48,9 @@ if None is exp57:
 
 # print(help(exp57.get_dir_contents))
 for content_file in exp57.get_dir_contents(""):
-    print("%-12s"%content_file.raw_data['name'], content_file.raw_data['url'])
+    print("%-12s" % content_file.raw_data['name'], content_file.raw_data['url'])
     print(len(content_file.raw_data))
     print(content_file.type)
 
 print(type(content_file))
-print(help(content_file))
+#print(help(content_file))
