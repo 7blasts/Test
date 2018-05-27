@@ -5,23 +5,67 @@
 # Фаза первая. Пишем настолько примитивно, насколько это вообще возможно.
 
 from __future__ import print_function
-from json import loads, dumps
-from pprint import pprint
+import json
 from github import*
+try:
+    from urllib2 import urlopen
+except:  # python3 ?
+    from urllib.request import urlopen
+
+
+class Project:
+    def __init__(self, name, repository):
+        self.username, self.repository = name, repository
+        self.tree = dict()
+        self.curr = []
+        print("++%s, %s" % (self.username, self.repository.name))
+
+    def explore(self):
+        """Build url's tree, using GitHub API, for 'self.repository'
+        :return: None
+        """
+        print("\n[%s]" % self.repository.full_name)
+        for ctx in self.repository.get_dir_contents(""):
+            print("%-16s %-8s %s" % (ctx.name, ctx.type, ctx.url))
+            subj = json.loads(urlopen(ctx.url).read())
+            # В этом месте отображаем тип ctx.type на вызов соответствующего
+            # метода, что должно выбросить исключение, в ситуации, когда нет
+            # метода для обработки объекта неизвестного, на этом этапе, типа:
+            # ctx.type со значением "Xx", вызовет исключение AttributeError:
+            # AttributeError: Project instance has no attribute 'explore_Xx'
+            apply(getattr(self, "explore_" + ctx.type), [subj])
+
+    def explore_file(self, ctx):
+        """Collect values from file info
+        :param ctx: 'dict' with 'GitHub API' file info
+        :return: None
+        """
+        name, sha, url = ctx["name"], ctx["sha"], ctx["url"]
+        print(name, sha, url)
+
+    def explore_dir(self, ctx):
+        """Collect values from folder info
+        :param ctx: 'list' with 'GitHub API v3' folder info
+        :return: None
+        """
+        print("contain %s records" % len(ctx))
+
 
 # Читаем файл с паролями и настройками спрятанный на локальной машине
 try:
     git_conf_file = open("C:/web/gitpwd.json", "r").read()
 except IOError:
     git_conf_file = '''
-    {"password"  : null
-    ,"username"  : "andreytata"
+    {"username"  : "andreytata"
+    ,"projects" : [ "exp57", "plugins" ]
+    ,"password"  : null
     }
     '''
 
-git_conf = loads(git_conf_file)
-username = git_conf["username"]
-password = git_conf["password"]
+git_conf = json.loads(git_conf_file)
+username = git_conf["username"]  # строка
+password = git_conf["password"]  # строка или None
+projects = git_conf["projects"]  # LIST OF PROJECTS
 
 # Создаём инстанцию класса Github используя логин и пароль
 print(git_conf)
@@ -35,22 +79,18 @@ else:
 
 print(gh.get_api_status())
 
-exp57 = None
-for repo in user.get_repos():
-    print(repo.name)
-    if repo.name == "exp57":
-        exp57 = repo
-        break
+projects_list = []
 
-if None is exp57:
-    print("Repository exp57 a not found for user '%s'" % username)
-    sys.exit()
+for r in user.get_repos():
+    print("exists '%s'" % r.full_name)
+    if r.name in projects:
+        projects_list.append(Project(username, r))
 
-# print(help(exp57.get_dir_contents))
-for content_file in exp57.get_dir_contents(""):
-    print("%-12s" % content_file.raw_data['name'], content_file.raw_data['url'])
-    print(len(content_file.raw_data))
-    print(content_file.type)
+for p in projects_list:
+    p.explore()
 
-print(type(content_file))
-#print(help(content_file))
+if len(projects_list) < len(projects):
+    explored = [i.repository.name for i in projects_list]
+    projects_lost = [i for i in projects if i not in explored]
+    for lost in projects_lost:
+        print("WARNING: '%s' has no repository '%s'" % (username, i))
