@@ -13,11 +13,46 @@ except:  # python3 ?
     from urllib.request import urlopen
 
 
-class Project:
+class Folder:
+    def __init__(self, name, parent=None):
+        self.name, self.parent = name, parent
+        self.folders, self.files = dict(), dict()
+        self.level = 0
+        while parent:
+            self.level += 1
+            parent = parent.parent
+
+    def add_git_hub_dir(self, subj):
+        """ Add folder item from github
+        :param subj: 'dict' with parsed GitHub API v3 JSON folder info
+        :return: None
+        """
+        sub_folder_name = subj["name"]
+        print("----" * self.level, 'd', subj, self)
+        print("    " * self.level + '->', sub_folder_name)
+        sub_folder = Folder(sub_folder_name, self)
+        self.folders[sub_folder_name] = sub_folder
+
+        #apply(getattr(sub_folder, "add_git_hub_"+node["type"]), [node])
+
+    def add_git_hub_file(self, subj):
+        """ Add source item from github
+        :param subj: 'dict' with parsed GitHub API v3 JSON file info
+        :return: None
+        """
+        print(self.level, 'f', subj, self)
+
+    def is_root(self):
+        return None is self.parent
+
+    def line_info(self):
+        return str([self.name, "dir", len(self.folders), len(self.files)])
+
+
+class Project(Folder):
     def __init__(self, name, repository):
+        Folder.__init__(self, name, None)
         self.username, self.repository = name, repository
-        self.tree = dict()
-        self.curr = []
         print("++%s, %s" % (self.username, self.repository.name))
 
     def explore(self):
@@ -27,29 +62,45 @@ class Project:
         print("\n[%s]" % self.repository.full_name)
         for ctx in self.repository.get_dir_contents(""):
             print("%-16s %-8s %s" % (ctx.name, ctx.type, ctx.url))
-            subj = json.loads(urlopen(ctx.url).read())
+            info = json.loads(urlopen(ctx.url).read())
             # В этом месте отображаем тип ctx.type на вызов соответствующего
             # метода, что должно выбросить исключение, в ситуации, когда нет
             # метода для обработки объекта неизвестного, на этом этапе, типа:
             # ctx.type со значением "Xx", вызовет исключение AttributeError:
             # AttributeError: Project instance has no attribute 'explore_Xx'
-            apply(getattr(self, "explore_" + ctx.type), [subj])
+            apply(getattr(self, "project_" + ctx.type), (ctx, info))
 
-    def explore_file(self, ctx):
+        print("-*"*30)
+        folder_names = self.folders.keys()
+        folder_names.sort()
+        for folder_name in folder_names:
+            print("[ %-12s ]" % folder_name, self.folders[folder_name].line_info())
+
+        source_names = self.files.keys()
+        source_names.sort()
+        for source_name in source_names:
+            print("  %-12s  " % source_name, self.files[source_name])
+
+    def project_file(self, ctx, info):
         """Collect values from file info
-        :param ctx: 'dict' with 'GitHub API' file info
+        :param ctx:
+        :param info: 'dict' with 'GitHub API' file item info
         :return: None
         """
-        name, sha, url = ctx["name"], ctx["sha"], ctx["url"]
-        print(name, sha, url)
+        print(ctx.name, ctx, info, self)
+        self.files[ctx.name] = info  # ctx.name, ctx.sha, ctx.url ...
 
-    def explore_dir(self, ctx):
+    def project_dir(self, ctx, info):
         """Collect values from folder info
-        :param ctx: 'list' with 'GitHub API v3' folder info
+        :param ctx:
+        :param info: 'list' with 'GitHub API v3' folder item info
         :return: None
         """
-        print("contain %s records" % len(ctx))
-
+        print(ctx.name, ctx, info)
+        folder = Folder(ctx.name, self)
+        self.folders[ctx.name] = folder
+        for node in info:
+            apply(getattr(folder, "add_git_hub_"+node["type"]), [node])
 
 # Читаем файл с паролями и настройками спрятанный на локальной машине
 try:
